@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Trackpad Configuration</title>
+    <style>
+        :root {
+            --bg-color: rgba(11, 12, 16, 0.85);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-color: #f5f5f7;
+            --text-secondary: #86868b;
+            --accent-blue: #007aff;
+            --accent-green: #34c759;
+            --accent-red: #ff3b30;
+            --accent-purple: #af52de;
+            --glass-blur: blur(25px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #0b0c10;
+            color: var(--text-color);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            overflow: hidden;
+        }
+
+        /* Sidebar navigation */
+        .sidebar {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-item.active {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Main panels container */
+        .main-content {
+            background: radial-gradient(circle at top right, rgba(0, 122, 255, 0.05) 0%, transparent 60%), #0b0c10;
+            padding: 2.5rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.75rem;
+            max-width: 580px;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        .title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* General status controller card */
+        .status-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .status-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            color: var(--accent-red);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-badge.active {
+            color: var(--accent-green);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+        }
+
+        .status-badge.active .status-dot {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        /* Configuration items */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .control-header span:last-child {
+            color: var(--text-color);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 122, 255, 0.4);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Buttons & Toggles */
+        .btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-stop {
+            background: var(--accent-red);
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .toggle-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .toggle-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Onboarding steps styles */
+        .wizard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .wizard-step {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .wizard-step.active {
+            display: flex;
+        }
+
+        .step-graphic {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .step-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 320px;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .step-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .wizard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wizard-indicator {
+            display: flex;
+            gap: 6px;
+        }
+
+        .wiz-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border-color);
+        }
+
+        .wiz-dot.active {
+            background: var(--accent-purple);
+            width: 12px;
+            border-radius: 3px;
+        }
+
+        /* Real-time console log overlay */
+        .live-console {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: "SF Mono", Menlo, Courier, monospace;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .live-console span:last-child {
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="nav-group">
+            <div style="font-weight: 600; font-size: 0.85rem; padding: 0.5rem 0.8rem; color: var(--text-color); margin-bottom: 0.5rem;">Air Trackpad</div>
+            <div id="nav-general" class="nav-item active" onclick="switchPanel('general')">General</div>
+            <div id="nav-sensitivity" class="nav-item" onclick="switchPanel('sensitivity')">Sensitivity</div>
+            <div id="nav-setup" class="nav-item" onclick="switchPanel('setup')">Calibration Setup</div>
+        </div>
+        <div class="nav-group">
+            <div style="font-size: 0.7rem; color: var(--text-secondary); padding: 0.5rem 0.8rem; text-align: center;">v1.0.0</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- GENERAL PANEL -->
+        <div id="panel-general" class="panel active">
+            <div class="title-section">
+                <h2>General Configuration</h2>
+                <div class="subtitle">Control status and toggle functional settings</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-info">
+                    <div class="status-title">Air Tracking Engine</div>
+                    <div id="status-display" class="status-badge">
+                        <div class="status-dot"></div>
+                        <span id="status-text">Inactive</span>
+                    </div>
+                </div>
+                <button id="toggle-btn" class="btn" onclick="toggleTracking()">Start Tracking</button>
+            </div>
+
+            <div class="control-group" style="gap: 0;">
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-title">System Spaces Swiping</span>
+                        <span class="toggle-desc">Switch desktop spaces with 3-finger swipes</span>
+                    </div>
+                    <input type="checkbox" id="swipe-enabled" checked onchange="saveOptions()">
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-title">Pinch to Left Click</span>
+                        <span class="toggle-desc">Pinch index/thumb to trigger mouse drag/click</span>
+                    </div>
+                    <input type="checkbox" id="pinch-enabled" checked onchange="saveOptions()">
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-title">Scroll Mode</span>
+                        <span class="toggle-desc">Extend index and middle finger side-by-side to scroll</span>
+                    </div>
+                    <input type="checkbox" id="scroll-enabled" checked onchange="saveOptions()">
+                </div>
+            </div>
+
+            <div class="live-console">
+                <span>Active Pose:</span>
+                <span id="active-pose">None</span>
+            </div>
+        </div>
+
+        <!-- SENSITIVITY PANEL -->
+        <div id="panel-sensitivity" class="panel">
+            <div class="title-section">
+                <h2>Sensitivity Tuning</h2>
+                <div class="subtitle">Fine-tune coordinate mapping values and smoothing coefficients</div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Cursor Speed Multiplier</span>
+                    <span id="speed-val">2.5x</span>
+                </div>
+                <input type="range" id="speed-slider" min="1.0" max="5.0" value="2.5" step="0.1" oninput="updateVal('speed', this.value)" onchange="saveOptions()">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>EMA Smoothing Filter (Lower = Smoother, Higher = Faster)</span>
+                    <span id="smooth-val">0.25</span>
+                </div>
+                <input type="range" id="smooth-slider" min="0.05" max="0.9" value="0.25" step="0.05" oninput="updateVal('smooth', this.value)" onchange="saveOptions()">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Tracking Skip Count (Lower = Less Latency, Higher = Less CPU)</span>
+                    <span id="skip-val">2</span>
+                </div>
+                <input type="range" id="skip-slider" min="1" max="4" value="2" step="1" oninput="updateVal('skip', this.value)" onchange="saveOptions()">
+            </div>
+        </div>
+
+        <!-- ONBOARDING SETUP PANEL -->
+        <div id="panel-setup" class="panel">
+            <div class="title-section">
+                <h2>Calibration & Guide</h2>
+                <div class="subtitle">Learn standard poses and calibrate hand positions</div>
+            </div>
+
+            <div class="wizard-container">
+                <!-- STEP 1 -->
+                <div id="step-1" class="wizard-step active">
+                    <div class="step-graphic">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2" />
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12,4 L12,8 M12,16 L12,20 M4,12 L8,12 M16,12 L20,12" />
+                        </svg>
+                    </div>
+                    <div class="step-info">
+                        <span class="step-title">1. Bounding Box Calibration</span>
+                        <span class="step-desc">Position your hand in the center of your web camera. The mapper maps coordinates inside the active center bounding box.</span>
+                    </div>
+                </div>
+
+                <!-- STEP 2 -->
+                <div id="step-2" class="wizard-step">
+                    <div class="step-graphic">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="1.5">
+                            <path d="M12,18 C12,18 10,14 8,11 C7,9.5 5,8.5 4,8.5 C3,8.5 2,9 2,10 C2,11.5 5,14 7,16 M18,8 C16.5,8 14.5,9.5 13.5,10.5 L9.5,14.5 C8.5,15.5 8,17 8,18.5" />
+                            <circle cx="8" cy="18.5" r="1" fill="var(--accent-purple)" />
+                            <path d="M13,6 C13,6 15,5 17,5 C18.5,5 19,6 19,7 C19,8.5 17,10 15,12" />
+                        </svg>
+                    </div>
+                    <div class="step-info">
+                        <span class="step-title">2. Pinch-to-Click</span>
+                        <span class="step-desc">Bring your index finger and thumb together to click. Keep them pinched and move your hand to drag.</span>
+                    </div>
+                </div>
+
+                <!-- STEP 3 -->
+                <div id="step-3" class="wizard-step">
+                    <div class="step-graphic">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="1.5">
+                            <path d="M10,22 V12 M14,22 V10 M6,22 V15 M18,22 V15" />
+                            <circle cx="10" cy="12" r="1" fill="var(--accent-purple)" />
+                            <circle cx="14" cy="10" r="1" fill="var(--accent-purple)" />
+                        </svg>
+                    </div>
+                    <div class="step-info">
+                        <span class="step-title">3. Two-Finger Scroll</span>
+                        <span class="step-desc">Raise both index and middle fingers side-by-side. Move your hand up and down to scroll vertically.</span>
+                    </div>
+                </div>
+
+                <div class="wizard-nav">
+                    <button class="btn btn-outline" style="background:none; border:1px solid var(--border-color); color:var(--text-color);" onclick="moveWizard(-1)">Previous</button>
+                    <div class="wizard-indicator">
+                        <div id="dot-1" class="wiz-dot active"></div>
+                        <div id="dot-2" class="wiz-dot"></div>
+                        <div id="dot-3" class="wiz-dot"></div>
+                    </div>
+                    <button class="btn" onclick="moveWizard(1)">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let trackingActive = false;
+        let currentStep = 1;
+
+        // Switch sidebar tabs
+        function switchPanel(panelId) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            
+            document.getElementById('nav-' + panelId).classList.add('active');
+            document.getElementById('panel-' + panelId).classList.add('active');
+        }
+
+        // Toggle tracking via Python JS interface
+        function toggleTracking() {
+            trackingActive = !trackingActive;
+            const statusDisplay = document.getElementById('status-display');
+            const statusText = document.getElementById('status-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+            
+            if (trackingActive) {
+                statusDisplay.classList.add('active');
+                statusText.innerText = "Running";
+                toggleBtn.innerText = "Stop Tracking";
+                toggleBtn.classList.add('btn-stop');
+                
+                // Call python bridge
+                if (window.pywebview) {
+                    window.pywebview.api.start_tracking();
+                }
+            } else {
+                statusDisplay.classList.remove('active');
+                statusText.innerText = "Inactive";
+                toggleBtn.innerText = "Start Tracking";
+                toggleBtn.classList.remove('btn-stop');
+                
+                // Call python bridge
+                if (window.pywebview) {
+                    window.pywebview.api.stop_tracking();
+                }
+            }
+        }
+
+        // Slider value update indicator
+        function updateVal(type, val) {
+            if (type === 'speed') {
+                document.getElementById('speed-val').innerText = parseFloat(val).toFixed(1) + 'x';
+            } else if (type === 'smooth') {
+                document.getElementById('smooth-val').innerText = parseFloat(val).toFixed(2);
+            } else if (type === 'skip') {
+                document.getElementById('skip-val').innerText = val;
+            }
+        }
+
+        // Calibration wizard steps
+        function moveWizard(dir) {
+            let nextStep = currentStep + dir;
+            if (nextStep < 1 || nextStep > 3) return;
+            
+            document.getElementById('step-' + currentStep).classList.remove('active');
+            document.getElementById('dot-' + currentStep).classList.remove('active');
+            
+            currentStep = nextStep;
+            document.getElementById('step-' + currentStep).classList.add('active');
+            document.getElementById('dot-' + currentStep).classList.add('active');
+        }
+
+        // Send settings changes back to Python
+        function saveOptions() {
+            const speed = parseFloat(document.getElementById('speed-slider').value);
+            const smoothing = parseFloat(document.getElementById('smooth-slider').value);
+            const skipCount = parseInt(document.getElementById('skip-slider').value);
+            
+            const pinchEnabled = document.getElementById('pinch-enabled').checked;
+            const scrollEnabled = document.getElementById('scroll-enabled').checked;
+            const swipeEnabled = document.getElementById('swipe-enabled').checked;
+
+            const options = {
+                speed: speed,
+                smoothing: smoothing,
+                skip_count: skipCount,
+                pinch_enabled: pinchEnabled,
+                scroll_enabled: scrollEnabled,
+                swipe_enabled: swipeEnabled
+            };
+
+            if (window.pywebview) {
+                window.pywebview.api.update_settings(options);
+            }
+        }
+
+        // Helper to update active pose text dynamically from python thread callbacks
+        function updatePose(poseName) {
+            document.getElementById('active-pose').innerText = poseName;
+        }
+
+        // Initialize default fields on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Can be populated dynamically from python settings values if injected
+        });
+    </script>
+</body>
+</html>
