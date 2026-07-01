@@ -34,3 +34,9 @@ LOSS_OF_TRACKING_FRAMES = 5    # Reset tracking if hand is missing for this many
 SHORTCUT_SPACE_LEFT = ["ctrl", "right"]
 SHORTCUT_SPACE_RIGHT = ["ctrl", "left"]
 SHORTCUT_MISSION_CONTROL = ["ctrl", "up"]
+
+# Gesture Enablement Toggles
+PINCH_ENABLED = True
+SCROLL_ENABLED = True
+SWIPE_ENABLED = True
+
