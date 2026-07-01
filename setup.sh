@@ -15,24 +15,25 @@ else
 fi
 echo "Using Homebrew Prefix: $BREW_PREFIX"
 
-# Check Python version
-if ! command -v python3 &> /dev/null; then
-    echo "ERROR: python3 is not installed. Please install Python 3.10 or 3.11."
-    exit 1
+# Determine python executable (prefer Python 3.11 or 3.10 for stable MediaPipe solutions)
+if [ -x "/Users/nikhil/.local/bin/python3.11" ]; then
+    PYTHON_EXE="/Users/nikhil/.local/bin/python3.11"
+elif command -v python3.11 &> /dev/null; then
+    PYTHON_EXE="python3.11"
+elif command -v python3.10 &> /dev/null; then
+    PYTHON_EXE="python3.10"
+else
+    PYTHON_EXE="python3"
 fi
 
-PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+echo "Selected Python Interpreter: $PYTHON_EXE"
+PY_VERSION=$($PYTHON_EXE -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 echo "Detected Python Version: $PY_VERSION"
-
-# Warn if Python version is not 3.10 or 3.11
-if [ "$PY_VERSION" != "3.10" ] && [ "$PY_VERSION" != "3.11" ]; then
-    echo "WARNING: Pinned environment is Python 3.10 or 3.11. Current is $PY_VERSION."
-    echo "MediaPipe installation may fail or require compilation on older/newer versions."
-fi
 
 # Set up virtual environment
 echo "=== Creating Virtual Environment ==="
-python3 -m venv venv
+rm -rf venv # Clear old venv to ensure clean packages
+$PYTHON_EXE -m venv venv
 source venv/bin/activate
 
 # Upgrade pip
@@ -41,8 +42,15 @@ pip install --upgrade pip
 
 # Install dependencies
 echo "=== Installing Dependencies ==="
-# MediaPipe, OpenCV, pynput, and PyObjC (for Accessibility API checks)
-pip install opencv-python mediapipe pynput pyobjc-core pyobjc-framework-ApplicationServices
+if [ "$PY_VERSION" = "3.14" ]; then
+    # Fallback if we must run on 3.14, but solutions will not be found in newer MediaPipe.
+    # So we force python 3.11/3.10.
+    echo "WARNING: Running on Python 3.14. Solutions API may be missing."
+    pip install opencv-python mediapipe pynput pyobjc-core pyobjc-framework-ApplicationServices
+else
+    # Install mediapipe 0.10.14 or similar which has solutions built-in
+    pip install opencv-python mediapipe==0.10.14 pynput pyobjc-core pyobjc-framework-ApplicationServices
+fi
 
 echo "=== Setup Completed Successfully ==="
-echo "To run the application, execute: source venv/bin/activate && python main.py"
+echo "To run the application, execute: ./run.sh"

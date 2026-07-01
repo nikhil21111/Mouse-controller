@@ -9,5 +9,5 @@ else
     exit 1
 fi
 
-# Run the python app
-python3 main.py
+# Run the python app in unbuffered mode to flush print logs immediately
+python3 -u main.py
