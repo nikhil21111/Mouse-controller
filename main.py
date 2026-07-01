@@ -133,13 +133,13 @@ def main():
                     mapper.reset()
             else:
                 consecutive_missing_frames += 1
+                gesture = "Loss of Tracking"
                 if consecutive_missing_frames >= config.LOSS_OF_TRACKING_FRAMES:
                     # Reset all trackers on tracking loss
                     recognizer.reset()
                     mapper.reset()
                     os_controller.reset_scroll()
                     os_controller.release_left()
-                    gesture = "Loss of Tracking"
             
             # --- Draw Sleek HUD Elements (Premium aesthetics on opencv window) ---
             # Banner Background
